@@ -155,7 +155,13 @@ describe("daemon/agent", () => {
     });
 
     const context = mockCompleteSimple.mock.calls[0]?.[1] as { tools?: Tool[] };
-    expect(context.tools?.some((tool) => tool.name === "artifacts")).toBe(true);
+    const artifacts = context.tools?.find((tool) => tool.name === "artifacts");
+    expect(artifacts).toBeTruthy();
+    const properties = (artifacts?.parameters as { properties?: Record<string, unknown> })
+      ?.properties;
+    const content = properties?.content as { type?: unknown; description?: string } | undefined;
+    expect(content?.type).toBe("string");
+    expect(content?.description).toMatch(/serialized JSON as a string/i);
   });
 
   it("navigate tool exposes listTabs and switchToTab parameters", async () => {

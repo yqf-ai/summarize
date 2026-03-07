@@ -205,8 +205,9 @@ const TOOL_DEFINITIONS: Record<string, Tool> = {
           description: "Artifact filename (required for get/create/update/delete)",
         },
         content: {
-          description: "Content to store (string or JSON-serializable object)",
-          type: ["string", "object", "array", "number", "boolean", "null"],
+          type: "string",
+          description:
+            "Text content to store. For JSON/arrays/numbers/booleans/null, pass serialized JSON as a string.",
         },
         mimeType: { type: "string", description: "Optional MIME type override" },
         contentBase64: { type: "string", description: "Base64 payload for binary files" },
