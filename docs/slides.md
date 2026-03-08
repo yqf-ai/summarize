@@ -44,11 +44,11 @@ read_when:
 
 ## UI behavior
 
-- Default summary stays unchanged (no slide text).
-- Slide strip (compact) stays horizontal; no modal required.
-- Expand toggle switches to vertical full-width list:
-  - cards: thumbnail, timestamp, text.
-  - cards appear above summary.
+- Side panel slide mode is slide-first:
+  - vertical full-width cards by default
+  - thumbnail + timestamp + text
+  - transcript/OCR text appears before slide images finish extracting
+- No giant summary block under active slide cards.
 - Slide click: seek only (no modal).
 - OCR toggle appears near summarize control only when OCR is significant
   (enough slides + total OCR chars); otherwise hide it.

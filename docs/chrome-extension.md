@@ -108,6 +108,11 @@ See `docs/media.md` for detection and transcript rules.
 
 - The slides toggle lights up on media-friendly URLs (YouTube/watch|shorts, youtu.be, direct media) or when the page reports video/audio. Defaults to Video on those pages.
 - Turning slides **on** refreshes the current summary and requests slide extraction (`yt-dlp`, `ffmpeg`). OCR text is opt-in (Advanced setting) and requires `tesseract`. Missing tools surface a footer notice with install instructions; restart the daemon after installing.
+- Active slide mode is slide-first:
+  - vertical image/text cards
+  - transcript-first text; OCR fallback
+  - text can appear before slide images finish extracting
+  - the large summary block is hidden while slide cards are active
 - Slides stay off elsewhere and the toggle is disabled on non-media pages.
 
 ## SPA Navigation
