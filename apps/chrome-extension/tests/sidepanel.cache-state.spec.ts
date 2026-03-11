@@ -714,8 +714,11 @@ test("sidepanel keeps slide summaries isolated when switching YouTube videos mid
 
     await page.waitForTimeout(1_200);
     const stillBravoDescriptions = await getPanelSlideDescriptions(page);
-    expect(stillBravoDescriptions[0]?.[1] ?? "").toMatch(/bravo/i);
+    const stillBravoSlidesSummary = await getPanelSlidesSummaryMarkdown(page);
+    expect(stillBravoDescriptions).toHaveLength(2);
     expect(stillBravoDescriptions.some(([, text]) => /alpha/i.test(text))).toBe(false);
+    expect(stillBravoSlidesSummary).toMatch(/bravo/i);
+    expect(stillBravoSlidesSummary).not.toMatch(/alpha/i);
     await page.screenshot({
       path: testInfo.outputPath("youtube-switch-mid-analysis-bravo.png"),
       fullPage: true,
