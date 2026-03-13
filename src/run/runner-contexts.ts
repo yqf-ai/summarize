@@ -1,8 +1,8 @@
 import type { CacheState } from "../cache.js";
 import type { MediaCache } from "../content/index.js";
-import type { AssetSummaryContext, SummarizeAssetArgs } from "./flows/asset/summary.js";
+import { createAssetSummaryContext, type SummarizeAssetArgs } from "./flows/asset/summary.js";
 import { summarizeAsset as summarizeAssetFlow } from "./flows/asset/summary.js";
-import type { UrlFlowContext } from "./flows/url/types.js";
+import { createUrlFlowContext, type UrlFlowContext } from "./flows/url/types.js";
 
 type SummarizeMediaFile = typeof import("./flows/asset/media.js").summarizeMediaFile;
 
@@ -39,58 +39,70 @@ export function createRunnerFlowContexts(options: {
     estimateCostUsd,
   } = options;
 
-  const assetSummaryContext: AssetSummaryContext = {
-    env: io.env,
-    envForRun: io.envForRun,
-    stdout: io.stdout,
-    stderr: io.stderr,
-    execFileImpl: io.execFileImpl,
-    timeoutMs: flags.timeoutMs,
-    preprocessMode: flags.preprocessMode,
-    format: flags.format,
-    extractMode: flags.extractMode,
-    lengthArg: flags.lengthArg,
-    forceSummary: flags.forceSummary,
-    outputLanguage: flags.outputLanguage,
-    videoMode: flags.videoMode,
-    fixedModelSpec: model.fixedModelSpec,
-    promptOverride: flags.promptOverride,
-    lengthInstruction: flags.lengthInstruction,
-    languageInstruction: flags.languageInstruction,
-    isFallbackModel: model.isFallbackModel,
-    isImplicitAutoSelection: model.isImplicitAutoSelection,
-    allowAutoCliFallback: model.allowAutoCliFallback,
-    desiredOutputTokens: model.desiredOutputTokens,
-    envForAuto: model.envForAuto,
-    configForModelSelection: model.configForModelSelection,
-    cliAvailability: model.cliAvailability,
-    requestedModel: model.requestedModel,
-    requestedModelInput: model.requestedModelInput,
-    requestedModelLabel: model.requestedModelLabel,
-    wantsFreeNamedModel: model.wantsFreeNamedModel,
-    isNamedModelSelection: model.isNamedModelSelection,
-    maxOutputTokensArg: flags.maxOutputTokensArg,
-    json: flags.json,
-    metricsEnabled: flags.metricsEnabled,
-    metricsDetailed: flags.metricsDetailed,
-    shouldComputeReport: flags.shouldComputeReport,
-    runStartedAtMs: flags.runStartedAtMs,
-    verbose: flags.verbose,
-    verboseColor: flags.verboseColor,
-    streamingEnabled: flags.streamingEnabled,
-    plain: flags.plain,
-    summaryEngine: model.summaryEngine,
-    trackedFetch: io.fetch,
-    writeViaFooter,
-    clearProgressForStdout,
-    restoreProgressAfterStdout,
-    getLiteLlmCatalog: model.getLiteLlmCatalog,
-    buildReport,
-    estimateCostUsd,
-    llmCalls: model.llmCalls,
-    cache: cacheState,
-    summaryCacheBypass: flags.summaryCacheBypass,
-    mediaCache,
+  const assetSummaryContext = createAssetSummaryContext({
+    io: {
+      env: io.env,
+      envForRun: io.envForRun,
+      stdout: io.stdout,
+      stderr: io.stderr,
+      execFileImpl: io.execFileImpl,
+      trackedFetch: io.fetch,
+    },
+    summary: {
+      timeoutMs: flags.timeoutMs,
+      preprocessMode: flags.preprocessMode,
+      format: flags.format,
+      extractMode: flags.extractMode,
+      lengthArg: flags.lengthArg,
+      forceSummary: flags.forceSummary,
+      outputLanguage: flags.outputLanguage,
+      videoMode: flags.videoMode,
+      promptOverride: flags.promptOverride,
+      lengthInstruction: flags.lengthInstruction,
+      languageInstruction: flags.languageInstruction,
+      maxOutputTokensArg: flags.maxOutputTokensArg,
+      summaryCacheBypass: flags.summaryCacheBypass,
+    },
+    model: {
+      fixedModelSpec: model.fixedModelSpec,
+      isFallbackModel: model.isFallbackModel,
+      isImplicitAutoSelection: model.isImplicitAutoSelection,
+      allowAutoCliFallback: model.allowAutoCliFallback,
+      desiredOutputTokens: model.desiredOutputTokens,
+      envForAuto: model.envForAuto,
+      configForModelSelection: model.configForModelSelection,
+      cliAvailability: model.cliAvailability,
+      requestedModel: model.requestedModel,
+      requestedModelInput: model.requestedModelInput,
+      requestedModelLabel: model.requestedModelLabel,
+      wantsFreeNamedModel: model.wantsFreeNamedModel,
+      isNamedModelSelection: model.isNamedModelSelection,
+      summaryEngine: model.summaryEngine,
+      getLiteLlmCatalog: model.getLiteLlmCatalog,
+      llmCalls: model.llmCalls,
+    },
+    output: {
+      json: flags.json,
+      metricsEnabled: flags.metricsEnabled,
+      metricsDetailed: flags.metricsDetailed,
+      shouldComputeReport: flags.shouldComputeReport,
+      runStartedAtMs: flags.runStartedAtMs,
+      verbose: flags.verbose,
+      verboseColor: flags.verboseColor,
+      streamingEnabled: flags.streamingEnabled,
+      plain: flags.plain,
+    },
+    hooks: {
+      writeViaFooter,
+      clearProgressForStdout,
+      restoreProgressAfterStdout,
+      buildReport,
+      estimateCostUsd,
+    },
+    cache: {
+      cache: cacheState,
+      mediaCache,
+    },
     apiStatus: {
       xaiApiKey: model.apiStatus.xaiApiKey,
       apiKey: model.apiStatus.apiKey,
@@ -106,7 +118,7 @@ export function createRunnerFlowContexts(options: {
       nvidiaBaseUrl: model.apiStatus.nvidiaBaseUrl,
       assemblyaiApiKey: model.apiStatus.assemblyaiApiKey,
     },
-  };
+  });
 
   const summarizeAsset = (args: SummarizeAssetArgs) =>
     summarizeAssetFlow(assetSummaryContext, args);
@@ -127,19 +139,13 @@ export function createRunnerFlowContexts(options: {
       setClearProgressBeforeStdout,
       clearProgressIfCurrent,
     },
-    urlFlowContext: {
+    urlFlowContext: createUrlFlowContext({
       io,
       flags,
       model,
       cache: cacheState,
       mediaCache,
-      hooks: {
-        onModelChosen: null,
-        onExtracted: null,
-        onSlidesExtracted: null,
-        onSlidesProgress: null,
-        onLinkPreviewProgress: null,
-        onSummaryCached: null,
+      runtimeHooks: {
         setTranscriptionCost,
         summarizeAsset,
         writeViaFooter,
@@ -149,9 +155,7 @@ export function createRunnerFlowContexts(options: {
         clearProgressIfCurrent,
         buildReport,
         estimateCostUsd,
-        onSlideChunk: undefined,
-        onSlidesDone: null,
       },
-    } satisfies UrlFlowContext,
+    }),
   };
 }

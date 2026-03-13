@@ -9,9 +9,12 @@ import type {
 import type { ExecFileFn } from "../markitdown.js";
 import type { FixedModelSpec } from "../model-spec.js";
 import { execFileTracked } from "../processes.js";
-import type { AssetSummaryContext, SummarizeAssetArgs } from "../run/flows/asset/summary.js";
-import { summarizeAsset as summarizeAssetFlow } from "../run/flows/asset/summary.js";
-import type { UrlFlowContext } from "../run/flows/url/types.js";
+import {
+  createAssetSummaryContext,
+  type SummarizeAssetArgs,
+  summarizeAsset as summarizeAssetFlow,
+} from "../run/flows/asset/summary.js";
+import { createUrlFlowContext, type UrlFlowContext } from "../run/flows/url/types.js";
 import { resolveRunContextState } from "../run/run-context.js";
 import { createRunMetrics } from "../run/run-metrics.js";
 import { resolveModelSelection } from "../run/run-models.js";
@@ -289,57 +292,70 @@ export function createDaemonUrlFlowContext(args: DaemonUrlFlowContextArgs): UrlF
       ? `Output should be ${outputLanguage.label}.`
       : null;
 
-  const assetSummaryContext: AssetSummaryContext = {
-    env: envForRun,
-    envForRun,
-    stdout,
-    stderr,
-    execFileImpl: execFileTracked as unknown as ExecFileFn,
-    timeoutMs,
-    preprocessMode,
-    format: "text",
-    extractMode: extractOnly ?? false,
-    lengthArg,
-    forceSummary: resolvedOverrides.forceSummary ?? false,
-    outputLanguage,
-    videoMode,
-    fixedModelSpec,
-    promptOverride,
-    lengthInstruction,
-    languageInstruction,
-    isFallbackModel,
-    isImplicitAutoSelection,
-    allowAutoCliFallback,
-    desiredOutputTokens,
-    envForAuto,
-    configForModelSelection,
-    cliAvailability,
-    requestedModel,
-    requestedModelInput,
-    requestedModelLabel,
-    wantsFreeNamedModel,
-    isNamedModelSelection,
-    maxOutputTokensArg,
-    json: false,
-    metricsEnabled: false,
-    metricsDetailed: false,
-    shouldComputeReport: false,
-    runStartedAtMs,
-    verbose: false,
-    verboseColor: false,
-    streamingEnabled: true,
-    plain: true,
-    summaryEngine,
-    trackedFetch: metrics.trackedFetch,
-    writeViaFooter: () => {},
-    clearProgressForStdout: () => {},
-    getLiteLlmCatalog: metrics.getLiteLlmCatalog,
-    buildReport: metrics.buildReport,
-    estimateCostUsd: metrics.estimateCostUsd,
-    llmCalls: metrics.llmCalls,
-    cache,
-    summaryCacheBypass: false,
-    mediaCache,
+  const assetSummaryContext = createAssetSummaryContext({
+    io: {
+      env: envForRun,
+      envForRun,
+      stdout,
+      stderr,
+      execFileImpl: execFileTracked as unknown as ExecFileFn,
+      trackedFetch: metrics.trackedFetch,
+    },
+    summary: {
+      timeoutMs,
+      preprocessMode,
+      format: "text",
+      extractMode: extractOnly ?? false,
+      lengthArg,
+      forceSummary: resolvedOverrides.forceSummary ?? false,
+      outputLanguage,
+      videoMode,
+      promptOverride,
+      lengthInstruction,
+      languageInstruction,
+      maxOutputTokensArg,
+      summaryCacheBypass: false,
+    },
+    model: {
+      fixedModelSpec,
+      isFallbackModel,
+      isImplicitAutoSelection,
+      allowAutoCliFallback,
+      desiredOutputTokens,
+      envForAuto,
+      configForModelSelection,
+      cliAvailability,
+      requestedModel,
+      requestedModelInput,
+      requestedModelLabel,
+      wantsFreeNamedModel,
+      isNamedModelSelection,
+      summaryEngine,
+      getLiteLlmCatalog: metrics.getLiteLlmCatalog,
+      llmCalls: metrics.llmCalls,
+    },
+    output: {
+      json: false,
+      metricsEnabled: false,
+      metricsDetailed: false,
+      shouldComputeReport: false,
+      runStartedAtMs,
+      verbose: false,
+      verboseColor: false,
+      streamingEnabled: true,
+      plain: true,
+    },
+    hooks: {
+      writeViaFooter: () => {},
+      clearProgressForStdout: () => {},
+      restoreProgressAfterStdout: undefined,
+      buildReport: metrics.buildReport,
+      estimateCostUsd: metrics.estimateCostUsd,
+    },
+    cache: {
+      cache,
+      mediaCache,
+    },
     apiStatus: {
       xaiApiKey,
       apiKey,
@@ -355,9 +371,9 @@ export function createDaemonUrlFlowContext(args: DaemonUrlFlowContextArgs): UrlF
       nvidiaBaseUrl,
       assemblyaiApiKey,
     },
-  };
+  });
 
-  const ctx: UrlFlowContext = {
+  const ctx: UrlFlowContext = createUrlFlowContext({
     io: {
       env: envForRun,
       envForRun,
@@ -449,26 +465,20 @@ export function createDaemonUrlFlowContext(args: DaemonUrlFlowContextArgs): UrlF
     },
     cache,
     mediaCache,
-    hooks: {
-      onModelChosen: hooks?.onModelChosen ?? null,
-      onExtracted: hooks?.onExtracted ?? null,
-      onSlidesExtracted: hooks?.onSlidesExtracted ?? null,
-      onSlidesProgress: hooks?.onSlidesProgress ?? null,
-      onSlidesDone: hooks?.onSlidesDone ?? null,
-      onSlideChunk: hooks?.onSlideChunk ?? undefined,
-      onLinkPreviewProgress: hooks?.onLinkPreviewProgress ?? null,
-      onSummaryCached: hooks?.onSummaryCached ?? null,
+    runtimeHooks: {
       setTranscriptionCost: metrics.setTranscriptionCost,
       summarizeAsset: (assetArgs: SummarizeAssetArgs) =>
         summarizeAssetFlow(assetSummaryContext, assetArgs),
       writeViaFooter: () => {},
       clearProgressForStdout: () => {},
+      restoreProgressAfterStdout: undefined,
       setClearProgressBeforeStdout: () => {},
       clearProgressIfCurrent: () => {},
       buildReport: metrics.buildReport,
       estimateCostUsd: metrics.estimateCostUsd,
     },
-  };
+    eventHooks: hooks ?? undefined,
+  });
 
   return ctx;
 }

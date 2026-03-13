@@ -149,6 +149,69 @@ export type UrlFlowHooks = {
   estimateCostUsd: () => Promise<number | null>;
 };
 
+export type UrlFlowEventHooks = Pick<
+  UrlFlowHooks,
+  | "onModelChosen"
+  | "onExtracted"
+  | "onSlidesExtracted"
+  | "onSlidesProgress"
+  | "onSlidesDone"
+  | "onSlideChunk"
+  | "onLinkPreviewProgress"
+  | "onSummaryCached"
+>;
+
+export type UrlFlowRuntimeHooks = Pick<
+  UrlFlowHooks,
+  | "setTranscriptionCost"
+  | "summarizeAsset"
+  | "writeViaFooter"
+  | "clearProgressForStdout"
+  | "restoreProgressAfterStdout"
+  | "setClearProgressBeforeStdout"
+  | "clearProgressIfCurrent"
+  | "buildReport"
+  | "estimateCostUsd"
+>;
+
+export function createUrlFlowHooks(options: {
+  runtime: UrlFlowRuntimeHooks;
+  events?: Partial<UrlFlowEventHooks>;
+}): UrlFlowHooks {
+  return {
+    onModelChosen: null,
+    onExtracted: null,
+    onSlidesExtracted: null,
+    onSlidesProgress: null,
+    onSlidesDone: null,
+    onSlideChunk: undefined,
+    onLinkPreviewProgress: null,
+    onSummaryCached: null,
+    ...options.events,
+    ...options.runtime,
+  };
+}
+
+export function createUrlFlowContext(options: {
+  io: UrlFlowIo;
+  flags: UrlFlowFlags;
+  model: UrlFlowModel;
+  cache: CacheState;
+  mediaCache: MediaCache | null;
+  runtimeHooks: UrlFlowRuntimeHooks;
+  eventHooks?: Partial<UrlFlowEventHooks>;
+}): UrlFlowContext {
+  const { io, flags, model, cache, mediaCache, runtimeHooks, eventHooks } = options;
+  return {
+    io,
+    flags,
+    model,
+    cache,
+    mediaCache,
+    hooks: createUrlFlowHooks({ runtime: runtimeHooks, events: eventHooks }),
+  };
+}
+
 /**
  * Wiring struct for `runUrlFlow`.
  * CLI runner populates the full surface; daemon uses a smaller subset (no TTY/progress/footer),

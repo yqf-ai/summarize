@@ -275,6 +275,82 @@ export type AssetSummaryContext = {
   };
 };
 
+export type AssetSummaryContextInput = {
+  io: Pick<
+    AssetSummaryContext,
+    "env" | "envForRun" | "stdout" | "stderr" | "execFileImpl" | "trackedFetch"
+  >;
+  summary: Pick<
+    AssetSummaryContext,
+    | "timeoutMs"
+    | "preprocessMode"
+    | "format"
+    | "extractMode"
+    | "lengthArg"
+    | "forceSummary"
+    | "outputLanguage"
+    | "videoMode"
+    | "promptOverride"
+    | "lengthInstruction"
+    | "languageInstruction"
+    | "maxOutputTokensArg"
+    | "summaryCacheBypass"
+  >;
+  model: Pick<
+    AssetSummaryContext,
+    | "fixedModelSpec"
+    | "isFallbackModel"
+    | "isImplicitAutoSelection"
+    | "allowAutoCliFallback"
+    | "desiredOutputTokens"
+    | "envForAuto"
+    | "configForModelSelection"
+    | "cliAvailability"
+    | "requestedModel"
+    | "requestedModelInput"
+    | "requestedModelLabel"
+    | "wantsFreeNamedModel"
+    | "isNamedModelSelection"
+    | "summaryEngine"
+    | "getLiteLlmCatalog"
+    | "llmCalls"
+  >;
+  output: Pick<
+    AssetSummaryContext,
+    | "json"
+    | "metricsEnabled"
+    | "metricsDetailed"
+    | "shouldComputeReport"
+    | "runStartedAtMs"
+    | "verbose"
+    | "verboseColor"
+    | "streamingEnabled"
+    | "plain"
+  >;
+  hooks: Pick<
+    AssetSummaryContext,
+    | "writeViaFooter"
+    | "clearProgressForStdout"
+    | "restoreProgressAfterStdout"
+    | "buildReport"
+    | "estimateCostUsd"
+  >;
+  cache: Pick<AssetSummaryContext, "cache" | "mediaCache">;
+  apiStatus: AssetSummaryContext["apiStatus"];
+};
+
+export function createAssetSummaryContext(input: AssetSummaryContextInput): AssetSummaryContext {
+  return {
+    ...input.io,
+    ...input.summary,
+    ...input.model,
+    ...input.output,
+    ...input.hooks,
+    ...input.cache,
+    apiStatus: input.apiStatus,
+  };
+}
+
 export type SummarizeAssetArgs = {
   sourceKind: "file" | "asset-url";
   sourceLabel: string;
