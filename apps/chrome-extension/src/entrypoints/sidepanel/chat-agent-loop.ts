@@ -89,7 +89,9 @@ export async function runChatAgentLoop({
     chatController.finishStreamingMessage();
     scrollToBottom(true);
 
-    const toolCalls = assistant.content.filter((part) => part.type === "toolCall") as ToolCall[];
+    const toolCalls = Array.isArray(assistant.content)
+      ? (assistant.content.filter((part) => part.type === "toolCall") as ToolCall[])
+      : [];
     if (toolCalls.length === 0) break;
 
     for (const call of toolCalls) {
