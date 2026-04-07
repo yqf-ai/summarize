@@ -113,7 +113,15 @@ function normalizeAutoCliOrder(value: unknown): string {
     .filter(Boolean);
   const out: string[] = [];
   for (const item of items) {
-    if (item !== "claude" && item !== "gemini" && item !== "codex" && item !== "agent") continue;
+    if (
+      item !== "claude" &&
+      item !== "gemini" &&
+      item !== "codex" &&
+      item !== "agent" &&
+      item !== "openclaw"
+    ) {
+      continue;
+    }
     if (!out.includes(item)) out.push(item);
   }
   return out.length > 0 ? out.join(",") : defaultSettings.autoCliOrder;
@@ -230,7 +238,7 @@ export const defaultSettings: Settings = {
   summaryTimestamps: true,
   extendedLogging: false,
   autoCliFallback: true,
-  autoCliOrder: "claude,gemini,codex,agent",
+  autoCliOrder: "claude,gemini,codex,agent,openclaw",
   hoverPrompt:
     "Plain text only (no Markdown). Summarize the linked page concisely in 1-2 sentences; aim for 100-200 characters.",
   transcriber: "",

@@ -15,10 +15,13 @@ import {
 
 describe("llm provider capabilities", () => {
   it("exposes stable CLI defaults and parsing", () => {
-    expect(DEFAULT_AUTO_CLI_ORDER).toEqual(["claude", "gemini", "codex", "agent"]);
+    expect(DEFAULT_AUTO_CLI_ORDER).toEqual(["claude", "gemini", "codex", "agent", "openclaw"]);
     expect(DEFAULT_CLI_MODELS.gemini).toBe("gemini-3-flash");
+    expect(DEFAULT_CLI_MODELS.openclaw).toBe("main");
     expect(parseCliProviderName(" GeMiNi ")).toBe("gemini");
+    expect(parseCliProviderName(" openclaw ")).toBe("openclaw");
     expect(requiredEnvForCliProvider("agent")).toBe("CLI_AGENT");
+    expect(requiredEnvForCliProvider("openclaw")).toBe("CLI_OPENCLAW");
   });
 
   it("tracks native provider capabilities centrally", () => {
@@ -45,6 +48,7 @@ describe("llm provider capabilities", () => {
 
   it("resolves provider requirements and OpenAI-compatible config centrally", () => {
     expect(resolveRequiredEnvForModelId("cli/gemini")).toBe("CLI_GEMINI");
+    expect(resolveRequiredEnvForModelId("openclaw/main")).toBe("CLI_OPENCLAW");
     expect(resolveRequiredEnvForModelId("openrouter/openai/gpt-5-mini")).toBe("OPENROUTER_API_KEY");
     expect(resolveRequiredEnvForModelId("nvidia/meta/llama-3.1-8b-instruct")).toBe(
       "NVIDIA_API_KEY",

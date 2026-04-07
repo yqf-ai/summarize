@@ -73,7 +73,13 @@ export const DEFAULT_CLI_MODELS: Record<CliProvider, string> = {
   openclaw: "main",
 };
 
-export const DEFAULT_AUTO_CLI_ORDER: CliProvider[] = ["claude", "gemini", "codex", "agent", "openclaw"];
+export const DEFAULT_AUTO_CLI_ORDER: CliProvider[] = [
+  "claude",
+  "gemini",
+  "codex",
+  "agent",
+  "openclaw",
+];
 
 export function parseCliProviderName(raw: string): CliProvider | null {
   const normalized = raw.trim().toLowerCase();
@@ -141,6 +147,7 @@ export function resolveRequiredEnvForModelId(modelId: string): RequiredModelEnv 
     const provider = parseCliProviderName(parts[1] ?? "");
     return provider ? requiredEnvForCliProvider(provider) : "CLI_CLAUDE";
   }
+  if (trimmed.toLowerCase().startsWith("openclaw/")) return "CLI_OPENCLAW";
   if (trimmed.toLowerCase().startsWith("openrouter/")) return "OPENROUTER_API_KEY";
   const parsed = parseGatewayStyleModelId(normalizeGatewayStyleModelId(trimmed));
   return requiredEnvForGatewayProvider(parsed.provider);

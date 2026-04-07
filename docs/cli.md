@@ -1,12 +1,12 @@
 ---
-summary: "CLI model providers and config for Claude, Codex, Gemini, and Cursor Agent."
+summary: "CLI model providers and config for Claude, Codex, Gemini, Cursor Agent, and OpenClaw."
 read_when:
   - "When changing CLI model integration."
 ---
 
 # CLI models
 
-Summarize can use installed CLIs (Claude, Codex, Gemini, Cursor Agent) as local model backends.
+Summarize can use installed CLIs (Claude, Codex, Gemini, Cursor Agent, OpenClaw) as local model backends.
 
 ## Model ids
 
@@ -14,6 +14,8 @@ Summarize can use installed CLIs (Claude, Codex, Gemini, Cursor Agent) as local 
 - `cli/codex/<model>` (e.g. `cli/codex/gpt-5.2`)
 - `cli/gemini/<model>` (e.g. `cli/gemini/gemini-3-flash`)
 - `cli/agent/<model>` (e.g. `cli/agent/gpt-5.2`)
+- `cli/openclaw/<model>` (e.g. `cli/openclaw/main`)
+- `openclaw/<model>` (alias for the same OpenClaw CLI path)
 
 Use `--cli [provider]` (case-insensitive) for the provider default, or `--model cli/<provider>/<model>` to pin a model.
 If `--cli` is provided without a provider, auto selection is used with CLI enabled.
@@ -28,7 +30,7 @@ Auto mode can prepend CLI attempts in two ways:
 - Auto CLI fallback (`cli.autoFallback`, default enabled):
   - Applies only to **implicit** auto (when no model is set via flag/env/config).
   - Default behavior: only when no API key is configured.
-  - Default order: `claude, gemini, codex, agent`.
+  - Default order: `claude, gemini, codex, agent, openclaw`.
   - Remembers + prioritizes the last successful CLI provider (`~/.summarize/cli-state.json`).
 
 Gemini CLI performance: summarize sets `GEMINI_CLI_NO_RELAUNCH=true` for Gemini CLI runs to avoid a costly self-relaunch (can be overridden by setting it yourself).
@@ -49,7 +51,7 @@ Configure auto CLI fallback:
     "autoFallback": {
       "enabled": true,
       "onlyWhenNoApiKeys": true,
-      "order": ["claude", "gemini", "codex", "agent"]
+      "order": ["claude", "gemini", "codex", "agent", "openclaw"]
     }
   }
 }
@@ -71,6 +73,7 @@ Binary lookup:
 
 - `CLAUDE_PATH`, `CODEX_PATH`, `GEMINI_PATH` (optional overrides)
 - `AGENT_PATH` (optional override)
+- `OPENCLAW_PATH` (optional override)
 - Otherwise uses `PATH`
 
 ## Attachments (images/files)
@@ -88,11 +91,11 @@ path-based prompt and enables the required tool flags:
 ```json
 {
   "cli": {
-    "enabled": ["claude", "gemini", "codex", "agent"],
+    "enabled": ["claude", "gemini", "codex", "agent", "openclaw"],
     "autoFallback": {
       "enabled": true,
       "onlyWhenNoApiKeys": true,
-      "order": ["claude", "gemini", "codex", "agent"]
+      "order": ["claude", "gemini", "codex", "agent", "openclaw"]
     },
     "codex": { "model": "gpt-5.2" },
     "gemini": { "model": "gemini-3-flash", "extraArgs": ["--verbose"] },
@@ -104,6 +107,10 @@ path-based prompt and enables the required tool flags:
     "agent": {
       "model": "gpt-5.2",
       "binary": "/usr/local/bin/agent"
+    },
+    "openclaw": {
+      "model": "main",
+      "binary": "/usr/local/bin/openclaw"
     }
   }
 }
@@ -115,6 +122,7 @@ Notes:
 - If a CLI call fails, auto mode falls back to the next candidate.
 - Cursor Agent CLI uses the `agent` binary and relies on Cursor CLI auth (login or `CURSOR_API_KEY`).
 - Gemini CLI is invoked in headless mode with `--prompt` for compatibility with current Gemini CLI releases.
+- OpenClaw uses the `openclaw agent --agent <model> --message ... --json` path and expects local OpenClaw auth/config to already be set up.
 
 ## Quick smoke test (all CLI providers)
 
@@ -127,6 +135,7 @@ summarize --cli codex --plain --timeout 2m /tmp/summarize-cli-smoke.txt
 summarize --cli claude --plain --timeout 2m /tmp/summarize-cli-smoke.txt
 summarize --cli gemini --plain --timeout 2m /tmp/summarize-cli-smoke.txt
 summarize --cli agent --plain --timeout 2m /tmp/summarize-cli-smoke.txt
+summarize --cli openclaw --plain --timeout 2m /tmp/summarize-cli-smoke.txt
 ```
 
 If Agent fails with auth, run `agent login` (interactive) or set `CURSOR_API_KEY`.

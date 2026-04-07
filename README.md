@@ -285,7 +285,7 @@ Use `summarize --help` or `summarize help` for the full help text.
 - `--length short|medium|long|xl|xxl|s|m|l|<chars>`
 - `--language, --lang <language>`: output language (`auto` = match source)
 - `--max-output-tokens <count>`: hard cap for LLM output tokens
-- `--cli [provider]`: use a CLI provider (`--model cli/<provider>`). Supports `claude`, `gemini`, `codex`, `agent`. If omitted, uses auto selection with CLI enabled.
+- `--cli [provider]`: use a CLI provider (`--model cli/<provider>`). Supports `claude`, `gemini`, `codex`, `agent`, `openclaw`. If omitted, uses auto selection with CLI enabled.
 - `--stream auto|on|off`: stream LLM output (`auto` = TTY only; disabled in `--json` mode)
 - `--plain`: keep raw output (no ANSI/OSC Markdown rendering)
 - `--no-color`: disable ANSI colors
@@ -314,10 +314,11 @@ Summarize can use common coding CLIs as local model backends:
 - `claude` -> `--cli claude` / `--model cli/claude/<model>`
 - `gemini` -> `--cli gemini` / `--model cli/gemini/<model>`
 - `agent` (Cursor Agent CLI) -> `--cli agent` / `--model cli/agent/<model>`
+- `openclaw` -> `--cli openclaw` / `--model cli/openclaw/<model>` or `--model openclaw/<model>`
 
 Requirements:
 
-- Binary installed and on `PATH` (or set `CODEX_PATH`, `CLAUDE_PATH`, `GEMINI_PATH`, `AGENT_PATH`)
+- Binary installed and on `PATH` (or set `CODEX_PATH`, `CLAUDE_PATH`, `GEMINI_PATH`, `AGENT_PATH`, `OPENCLAW_PATH`)
 - Provider authenticated (`codex login`, `claude auth`, `gemini` login flow, `agent login` or `CURSOR_API_KEY`)
 
 Quick smoke test:
@@ -329,13 +330,14 @@ summarize --cli codex --plain --timeout 2m /tmp/summarize-cli-smoke.txt
 summarize --cli claude --plain --timeout 2m /tmp/summarize-cli-smoke.txt
 summarize --cli gemini --plain --timeout 2m /tmp/summarize-cli-smoke.txt
 summarize --cli agent --plain --timeout 2m /tmp/summarize-cli-smoke.txt
+summarize --cli openclaw --plain --timeout 2m /tmp/summarize-cli-smoke.txt
 ```
 
 Set explicit CLI allowlist/order:
 
 ```json
 {
-  "cli": { "enabled": ["codex", "claude", "gemini", "agent"] }
+  "cli": { "enabled": ["codex", "claude", "gemini", "agent", "openclaw"] }
 }
 ```
 
@@ -347,7 +349,7 @@ Configure implicit auto CLI fallback:
     "autoFallback": {
       "enabled": true,
       "onlyWhenNoApiKeys": true,
-      "order": ["claude", "gemini", "codex", "agent"]
+      "order": ["claude", "gemini", "codex", "agent", "openclaw"]
     }
   }
 }
@@ -363,7 +365,7 @@ CLI attempts are prepended when:
 - `cli.enabled` is set (explicit allowlist/order), or
 - implicit auto selection is active and `cli.autoFallback` is enabled.
 
-Default fallback behavior: only when no API keys are configured, order `claude, gemini, codex, agent`, and remember/prioritize last successful provider (`~/.summarize/cli-state.json`).
+Default fallback behavior: only when no API keys are configured, order `claude, gemini, codex, agent, openclaw`, and remember/prioritize last successful provider (`~/.summarize/cli-state.json`).
 
 Set explicit CLI attempts:
 

@@ -168,6 +168,41 @@ describe("runCliModel", () => {
     expect(seen[0]).toContain("x-test: 1");
   });
 
+  it("uses OpenClaw provider config and parses payload text", async () => {
+    const seen: string[][] = [];
+    const result = await runCliModel({
+      provider: "openclaw",
+      prompt: "Test",
+      model: "main",
+      allowTools: false,
+      timeoutMs: 2500,
+      env: { OPENCLAW_PATH: "/env/openclaw" },
+      execFileImpl: makeStub((args) => {
+        seen.push(args);
+        return {
+          stdout: JSON.stringify({
+            result: {
+              payloads: [{ text: "hello" }, { text: "world" }],
+              meta: {
+                agentMeta: {
+                  usage: { promptTokens: 4, completionTokens: 5, totalTokens: 9 },
+                },
+              },
+            },
+          }),
+        };
+      }),
+      config: { openclaw: { binary: "/custom/openclaw", extraArgs: ["--profile", "dev"] } },
+    });
+    expect(result.text).toBe("hello\n\nworld");
+    expect(result.usage).toEqual({ promptTokens: 4, completionTokens: 5, totalTokens: 9 });
+    expect(seen[0]?.slice(0, 2)).toEqual(["--profile", "dev"]);
+    expect(seen[0]).toContain("--agent");
+    expect(seen[0]).toContain("main");
+    expect(seen[0]).toContain("--timeout");
+    expect(seen[0]).toContain("3");
+  });
+
   it("handles Agent CLI JSON output in ask mode", async () => {
     const seen: string[][] = [];
     const execFileImpl = makeStub((args) => {
@@ -415,6 +450,9 @@ describe("cli helpers", () => {
       "/opt/codex",
     );
     expect(resolveCliBinary("agent", null, { AGENT_PATH: "/opt/agent" })).toBe("/opt/agent");
+    expect(resolveCliBinary("openclaw", null, { OPENCLAW_PATH: "/opt/openclaw" })).toBe(
+      "/opt/openclaw",
+    );
     expect(resolveCliBinary("gemini", null, {})).toBe("gemini");
   });
 });

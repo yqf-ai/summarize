@@ -304,6 +304,9 @@ export function parseCliConfig(root: Record<string, unknown>, path: string): Cli
   const codex = value.codex ? parseCliProviderConfig(value.codex, path, "codex") : undefined;
   const gemini = value.gemini ? parseCliProviderConfig(value.gemini, path, "gemini") : undefined;
   const agent = value.agent ? parseCliProviderConfig(value.agent, path, "agent") : undefined;
+  const openclaw = value.openclaw
+    ? parseCliProviderConfig(value.openclaw, path, "openclaw")
+    : undefined;
   if (typeof value.autoFallback !== "undefined" && typeof value.magicAuto !== "undefined") {
     throw new Error(
       `Invalid config file ${path}: use only one of "cli.autoFallback" or legacy "cli.magicAuto".`,
@@ -335,6 +338,7 @@ export function parseCliConfig(root: Record<string, unknown>, path: string): Cli
     codex ||
     gemini ||
     agent ||
+    openclaw ||
     autoFallback ||
     promptOverride ||
     typeof allowTools === "boolean" ||
@@ -346,6 +350,7 @@ export function parseCliConfig(root: Record<string, unknown>, path: string): Cli
         ...(codex ? { codex } : {}),
         ...(gemini ? { gemini } : {}),
         ...(agent ? { agent } : {}),
+        ...(openclaw ? { openclaw } : {}),
         ...(autoFallback ? { autoFallback } : {}),
         ...(promptOverride ? { promptOverride } : {}),
         ...(typeof allowTools === "boolean" ? { allowTools } : {}),

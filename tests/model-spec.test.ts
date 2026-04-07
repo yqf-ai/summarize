@@ -37,6 +37,24 @@ describe("model spec parsing", () => {
     expect(parsed.requiredEnv).toBe("CLI_AGENT");
   });
 
+  it("defaults openclaw cli models when missing", () => {
+    const parsed = parseRequestedModelId("cli/openclaw");
+    expect(parsed.kind).toBe("fixed");
+    expect(parsed.transport).toBe("cli");
+    expect(parsed.cliProvider).toBe("openclaw");
+    expect(parsed.cliModel).toBe("main");
+    expect(parsed.requiredEnv).toBe("CLI_OPENCLAW");
+  });
+
+  it("parses openclaw shorthand model ids", () => {
+    const parsed = parseRequestedModelId("openclaw/custom-agent");
+    expect(parsed.kind).toBe("fixed");
+    expect(parsed.transport).toBe("cli");
+    expect(parsed.cliProvider).toBe("openclaw");
+    expect(parsed.cliModel).toBe("custom-agent");
+    expect(parsed.userModelId).toBe("openclaw/custom-agent");
+  });
+
   it("defaults gemini cli models when missing", () => {
     const parsed = parseRequestedModelId("cli/gemini");
     expect(parsed.kind).toBe("fixed");

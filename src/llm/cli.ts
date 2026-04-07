@@ -59,7 +59,8 @@ function getCliProviderConfig(
   if (provider === "claude") return config.claude;
   if (provider === "codex") return config.codex;
   if (provider === "gemini") return config.gemini;
-  return config.agent;
+  if (provider === "agent") return config.agent;
+  return config.openclaw;
 }
 
 export function isCliDisabled(
@@ -157,7 +158,8 @@ export async function runCliModel({
     args.push(...extraArgs);
   }
   if (provider === "openclaw") {
-    const args = [
+    const openclawArgs = [
+      ...args,
       "agent",
       "--agent",
       model && model.trim().length > 0 ? model.trim() : "main",
@@ -170,7 +172,7 @@ export async function runCliModel({
     const { stdout } = await execCliWithInput({
       execFileImpl: execFileFn,
       cmd: binary,
-      args,
+      args: openclawArgs,
       input: "",
       timeoutMs,
       env: effectiveEnv,
@@ -185,7 +187,10 @@ export async function runCliModel({
           .join("\n\n")
       : "";
     if (!text.trim()) throw new Error("OpenClaw CLI returned empty output");
-    const usage = parsed?.result?.meta?.agentMeta?.lastCallUsage ?? parsed?.result?.meta?.agentMeta?.usage ?? null;
+    const usage =
+      parsed?.result?.meta?.agentMeta?.lastCallUsage ??
+      parsed?.result?.meta?.agentMeta?.usage ??
+      null;
     return { text: text.trim(), usage, costUsd: null };
   }
 

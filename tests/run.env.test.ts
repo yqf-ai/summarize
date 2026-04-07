@@ -44,7 +44,12 @@ describe("run/env", () => {
       provider: "gemini",
       model: null,
     });
+    expect(parseCliUserModelId("cli/openclaw/main")).toEqual({
+      provider: "openclaw",
+      model: "main",
+    });
     expect(parseCliProviderArg("  AGENT ")).toBe("agent");
+    expect(parseCliProviderArg(" openclaw ")).toBe("openclaw");
   });
 
   it("rejects invalid cli providers and model ids", () => {

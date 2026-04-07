@@ -34,7 +34,7 @@ installed, auto mode can use local CLI models via `cli.enabled` or implicit auto
 - `ANTHROPIC_API_KEY` (required for `anthropic/...` models)
 - `ANTHROPIC_BASE_URL` (optional; override Anthropic API endpoint)
 - `SUMMARIZE_MODEL` (optional; overrides default model selection)
-- `CLAUDE_PATH` / `CODEX_PATH` / `GEMINI_PATH` / `AGENT_PATH` (optional; override CLI binary paths)
+- `CLAUDE_PATH` / `CODEX_PATH` / `GEMINI_PATH` / `AGENT_PATH` / `OPENCLAW_PATH` (optional; override CLI binary paths)
 
 ## Flags
 
@@ -44,6 +44,7 @@ installed, auto mode can use local CLI models via `cli.enabled` or implicit auto
     - `cli/claude/sonnet`
     - `cli/gemini/gemini-3-flash`
     - `cli/agent/gpt-5.2`
+    - `cli/openclaw/main`
     - `google/gemini-3-flash`
     - `openai/gpt-5-mini`
     - `nvidia/z-ai/glm5`
@@ -53,7 +54,7 @@ installed, auto mode can use local CLI models via `cli.enabled` or implicit auto
     - `anthropic/claude-sonnet-4-5`
     - `openrouter/meta-llama/llama-3.3-70b-instruct:free` (force OpenRouter)
 - `--cli [provider]`
-  - Examples: `--cli claude`, `--cli Gemini`, `--cli codex`, `--cli agent` (equivalent to `--model cli/<provider>`); `--cli` alone uses auto selection with CLI enabled.
+  - Examples: `--cli claude`, `--cli Gemini`, `--cli codex`, `--cli agent`, `--cli openclaw` (equivalent to `--model cli/<provider>`); `--cli` alone uses auto selection with CLI enabled.
 - `--model auto`
   - See `docs/model-auto.md`
 - `--model <preset>`

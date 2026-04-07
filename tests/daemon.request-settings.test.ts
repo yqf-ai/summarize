@@ -70,10 +70,10 @@ describe("run/run-settings overrides", () => {
   it("parses auto CLI fallback overrides", () => {
     const overrides = resolveRunOverrides({
       autoCliFallback: "true",
-      autoCliOrder: "claude, gemini codex",
+      autoCliOrder: "claude, gemini codex openclaw",
     });
     expect(overrides.autoCliFallbackEnabled).toBe(true);
-    expect(overrides.autoCliOrder).toEqual(["claude", "gemini", "codex"]);
+    expect(overrides.autoCliOrder).toEqual(["claude", "gemini", "codex", "openclaw"]);
 
     const invalid = resolveRunOverrides({ autoCliOrder: "claude,bad-provider" });
     expect(invalid.autoCliOrder).toBeNull();

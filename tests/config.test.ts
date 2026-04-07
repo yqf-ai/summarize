@@ -498,6 +498,21 @@ describe("config loading", () => {
     expect(() => loadSummarizeConfig({ env: { HOME: root } })).toThrow(/unknown CLI provider/);
   });
 
+  it("parses openclaw cli config", () => {
+    const { root } = writeJsonConfig({
+      cli: {
+        enabled: ["openclaw"],
+        openclaw: { binary: "/usr/local/bin/openclaw", model: "main" },
+      },
+    });
+    expect(loadSummarizeConfig({ env: { HOME: root } }).config).toEqual({
+      cli: {
+        enabled: ["openclaw"],
+        openclaw: { binary: "/usr/local/bin/openclaw", model: "main" },
+      },
+    });
+  });
+
   it("rejects cli disabled and provider enabled flags", () => {
     const { root } = writeJsonConfig({ cli: { disabled: ["claude"] } });
     expect(() => loadSummarizeConfig({ env: { HOME: root } })).toThrow(/cli\.disabled/);

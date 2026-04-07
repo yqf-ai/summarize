@@ -59,6 +59,7 @@
 - Media setup: fix the local whisper.cpp install hint to use the current Homebrew formula name `whisper-cpp` (#92, thanks @zerone0x).
 - CLI output: cap markdown render width on very wide terminals by default, with a `--width` override for manual control (#119, thanks @howardpen9).
 - Media detection/cache: recognize `.m3u8` HLS playlists as direct media inputs and preserve the playlist extension in the media cache (#159, thanks @mdsakalu).
+- CLI providers: add OpenClaw as a configurable CLI backend (`--cli openclaw`, `cli/openclaw/...`, `openclaw/...`) across config, daemon discovery, and docs (#165, thanks @yqf-ai).
 - Slides: size inline slide images from terminal width instead of keeping them pinned to 32 columns, capped at 2x the previous width while preserving `COLUMNS` fallback behavior (#125, #135, thanks @WinnCook).
 - Shell completions: add Fish shell completions for the current CLI flags and option values (#95, thanks @fbehrens).
 - Bun fetch: only opt into compressed HTML/YouTube responses when running under Bun, and retry link-preview fetches with `Accept-Encoding: identity` after Bun decompression failures (#105, thanks @maciej).
