@@ -10,7 +10,7 @@ import {
   type LinkPreviewProgressEvent,
 } from "../../../content/index.js";
 import { createFirecrawlScraper } from "../../../firecrawl.js";
-import { resolveSlideSource } from "../../../slides/index.js";
+import { isDirectVideoInput, resolveSlideSource } from "../../../slides/index.js";
 import { readTweetWithPreferredClient } from "../../bird.js";
 import { resolveTwitterCookies } from "../../cookies/twitter.js";
 import { hasBirdCli, hasXurlCli } from "../../env.js";
@@ -112,14 +112,20 @@ export function createUrlExtractionSession({
     onProgress,
   });
 
-  const buildFetchOptions = (fileMtime: number | null): FetchLinkContentOptions => ({
+  const buildFetchOptions = (
+    targetUrl: string,
+    fileMtime: number | null,
+  ): FetchLinkContentOptions => ({
     timeoutMs: flags.timeoutMs,
     maxCharacters:
       typeof flags.maxExtractCharacters === "number" && flags.maxExtractCharacters > 0
         ? flags.maxExtractCharacters
         : undefined,
     youtubeTranscript: flags.youtubeMode,
-    mediaTranscript: flags.videoMode === "transcript" ? "prefer" : "auto",
+    mediaTranscript:
+      flags.videoMode === "transcript" || (Boolean(flags.slides) && isDirectVideoInput(targetUrl))
+        ? "prefer"
+        : "auto",
     transcriptTimestamps: flags.transcriptTimestamps,
     firecrawl: flags.firecrawlMode,
     format: markdown.markdownRequested ? "markdown" : "text",
@@ -133,7 +139,10 @@ export function createUrlExtractionSession({
     { bypassExtractCache = false }: { bypassExtractCache?: boolean } = {},
   ): Promise<ExtractedLinkContent> => {
     const localFile = isLocalFileUrl(targetUrl);
-    const options = buildFetchOptions(localFile ? resolveLocalFileMtime(targetUrl) : null);
+    const options = buildFetchOptions(
+      targetUrl,
+      localFile ? resolveLocalFileMtime(targetUrl) : null,
+    );
     const cacheKey =
       !localFile && cacheStore && cacheState.mode === "default"
         ? buildExtractCacheKey({

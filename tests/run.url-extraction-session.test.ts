@@ -39,7 +39,7 @@ function createCtx() {
       firecrawlMode: "off",
       verbose: false,
       verboseColor: false,
-      slides: false,
+      slides: null,
     },
     model: {
       apiStatus: {
@@ -140,8 +140,73 @@ describe("createUrlExtractionSession", () => {
       expect(ctx.cache.store.setJson).not.toHaveBeenCalled();
       expect(fetchLinkContentWithBirdTip).toHaveBeenCalledTimes(1);
       expect(fetchLinkContentWithBirdTip.mock.calls[0]?.[0]?.options.fileMtime).toBeGreaterThan(0);
+      expect(fetchLinkContentWithBirdTip.mock.calls[0]?.[0]?.options.mediaTranscript).toBe("auto");
     } finally {
       await fs.rm(filePath, { force: true });
     }
+  });
+
+  it("prefers transcript extraction for local slide videos", async () => {
+    const filePath = path.join(tmpdir(), `summarize-local-slides-${Date.now().toString()}.webm`);
+    await fs.writeFile(filePath, "video");
+
+    try {
+      const ctx = createCtx();
+      ctx.flags.slides = {
+        enabled: true,
+        ocr: false,
+        outputDir: "/tmp/slides",
+        sceneThreshold: 0.12,
+        autoTuneThreshold: true,
+        maxSlides: 6,
+        minDurationSeconds: 2,
+      };
+      const session = createUrlExtractionSession({
+        ctx: ctx as never,
+        markdown: {
+          convertHtmlToMarkdown: vi.fn(),
+          effectiveMarkdownMode: "off",
+          markdownRequested: false,
+        },
+        onProgress: null,
+      });
+
+      await session.fetchWithCache(pathToFileURL(filePath).href);
+
+      expect(fetchLinkContentWithBirdTip.mock.calls[0]?.[0]?.options.mediaTranscript).toBe(
+        "prefer",
+      );
+      expect(fetchLinkContentWithBirdTip.mock.calls[0]?.[0]?.options.transcriptTimestamps).toBe(
+        false,
+      );
+    } finally {
+      await fs.rm(filePath, { force: true });
+    }
+  });
+
+  it("prefers transcript extraction for direct video URLs when slides are enabled", async () => {
+    const ctx = createCtx();
+    ctx.flags.slides = {
+      enabled: true,
+      ocr: false,
+      outputDir: "/tmp/slides",
+      sceneThreshold: 0.12,
+      autoTuneThreshold: true,
+      maxSlides: 6,
+      minDurationSeconds: 2,
+    };
+    const session = createUrlExtractionSession({
+      ctx: ctx as never,
+      markdown: {
+        convertHtmlToMarkdown: vi.fn(),
+        effectiveMarkdownMode: "off",
+        markdownRequested: false,
+      },
+      onProgress: null,
+    });
+
+    await session.fetchWithCache("https://cdn.example.com/video.mp4");
+
+    expect(fetchLinkContentWithBirdTip.mock.calls[0]?.[0]?.options.mediaTranscript).toBe("prefer");
   });
 });
