@@ -2,9 +2,8 @@ export {
   extractSlidesForSource,
   parseShowinfoTimestamp,
   resolveExtractedTimestamp,
-  resolveSlideSource,
-  resolveSlideSourceFromUrl,
 } from "./extract.js";
+export { isDirectVideoInput, resolveSlideSource, resolveSlideSourceFromUrl } from "./source.js";
 export type { SlideSettings, SlideSettingsInput } from "./settings.js";
 export { resolveSlideSettings } from "./settings.js";
 export {

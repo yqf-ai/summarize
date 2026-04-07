@@ -1,6 +1,8 @@
+import { pathToFileURL } from "node:url";
 import type { InputTarget } from "../content/asset.js";
 import type { RunMetricsReport } from "../costs.js";
 import type { ExecFileFn } from "../markitdown.js";
+import { isDirectVideoInput } from "../slides/index.js";
 import type { AssetAttachment } from "./attachments.js";
 import { extractAssetContent } from "./flows/asset/extract.js";
 import type { AssetExtractContext } from "./flows/asset/extract.js";
@@ -17,6 +19,7 @@ export async function executeRunnerInput(options: {
   url: string | null;
   isYoutubeUrl: boolean;
   withUrlAssetContext: unknown;
+  slidesEnabled: boolean;
   extractMode: boolean;
   progressEnabled: boolean;
   renderSpinnerStatus: (label: string, detail?: string) => string;
@@ -67,6 +70,7 @@ export async function executeRunnerInput(options: {
     url,
     isYoutubeUrl,
     withUrlAssetContext,
+    slidesEnabled,
     extractMode,
     progressEnabled,
     renderSpinnerStatus,
@@ -76,6 +80,12 @@ export async function executeRunnerInput(options: {
     summarizeAsset,
     runUrlFlowContext,
   } = options;
+  const slidesDirectInputUrl =
+    slidesEnabled && inputTarget.kind === "file" && isDirectVideoInput(inputTarget.filePath)
+      ? pathToFileURL(inputTarget.filePath).href
+      : slidesEnabled && url && isDirectVideoInput(url)
+        ? url
+        : null;
 
   if (inputTarget.kind === "stdin") {
     const stdinTempFile = await createTempFileFromStdin({ stream: stdin });
@@ -90,11 +100,21 @@ export async function executeRunnerInput(options: {
     }
   }
 
+  if (slidesDirectInputUrl && inputTarget.kind === "file") {
+    await runUrlFlow({
+      ctx: runUrlFlowContext as never,
+      url: slidesDirectInputUrl,
+      isYoutubeUrl: false,
+    });
+    return;
+  }
+
   if (await handleFileInput(handleFileInputContext as never, inputTarget)) {
     return;
   }
 
   if (
+    !slidesDirectInputUrl &&
     url &&
     (await withUrlAsset(
       withUrlAssetContext as never,
@@ -136,6 +156,11 @@ export async function executeRunnerInput(options: {
       },
     ))
   ) {
+    return;
+  }
+
+  if (slidesDirectInputUrl && inputTarget.kind === "url") {
+    await runUrlFlow({ ctx: runUrlFlowContext as never, url: slidesDirectInputUrl, isYoutubeUrl });
     return;
   }
 

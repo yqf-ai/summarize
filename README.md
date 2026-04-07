@@ -294,7 +294,7 @@ Use `summarize --help` or `summarize help` for the full help text.
   - Install `uvx`: `brew install uv` (or https://astral.sh/uv/)
 - `--extract`: print extracted content and exit (URLs only; stdin `-` is not supported)
   - Deprecated alias: `--extract-only`
-- `--slides`: extract slides for YouTube/direct video URLs and render them inline in the summary narrative (auto-renders inline in supported terminals)
+- `--slides`: extract slides for YouTube, direct video URLs, or local video files and render them inline in the summary narrative (auto-renders inline in supported terminals)
 - `--slides-ocr`: run OCR on extracted slides (requires `tesseract`)
 - `--slides-dir <dir>`: base output dir for slide images (default `./slides`)
 - `--slides-scene-threshold <value>`: scene detection threshold (0.1-1.0)
@@ -418,7 +418,7 @@ Environment variables for yt-dlp mode:
 
 Apify costs money but tends to be more reliable when captions exist.
 
-### Slide extraction (YouTube + direct video URLs)
+### Slide extraction (YouTube + direct video URLs + local video files)
 
 Extract slide screenshots (scene detection via `ffmpeg`) and optional OCR:
 
@@ -431,6 +431,7 @@ Requirements:
 ```bash
 summarize "https://www.youtube.com/watch?v=..." --slides
 summarize "https://www.youtube.com/watch?v=..." --slides --slides-ocr
+summarize "/path/to/video.webm" --slides
 ```
 
 Outputs are written under `./slides/<sourceId>/` (or `--slides-dir`). OCR results are included in JSON output

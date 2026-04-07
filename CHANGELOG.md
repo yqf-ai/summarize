@@ -2,6 +2,10 @@
 
 ## 0.12.1 - UNRELEASED
 
+### Features
+
+- Slides: support `--slides` for local video files in the main CLI and `summarize slides`, route local videos through the shared slide-aware flow, and document the local-file workflow (#149, thanks @steipete).
+
 ### Fixes
 
 - Homebrew: make the tap formula fail clearly on Linux instead of installing a macOS binary, and add generator/test coverage for the macOS-only guard (#147, thanks @steipete).

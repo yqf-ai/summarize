@@ -1,13 +1,15 @@
 import type { SummarizeConfig } from "../config.js";
-import { resolveSlideSettings, type SlideSettings } from "../slides/index.js";
+import type { InputTarget } from "../content/asset.js";
+import { isDirectMediaUrl } from "../content/index.js";
+import { isDirectVideoInput, resolveSlideSettings, type SlideSettings } from "../slides/index.js";
 
 export function resolveRunnerSlidesSettings(options: {
   normalizedArgv: string[];
   programOpts: Record<string, unknown>;
   config: SummarizeConfig | null;
-  inputKind: "url" | "file" | "stdin";
+  inputTarget: InputTarget;
 }): SlideSettings | null {
-  const { normalizedArgv, programOpts, config, inputKind } = options;
+  const { normalizedArgv, programOpts, config, inputTarget } = options;
 
   const slidesExplicitlySet = normalizedArgv.some(
     (arg) => arg === "--slides" || arg === "--no-slides" || arg.startsWith("--slides="),
@@ -52,8 +54,22 @@ export function resolveRunnerSlidesSettings(options: {
     cwd: process.cwd(),
   });
 
-  if (slidesSettings && inputKind !== "url") {
-    throw new Error("--slides is only supported for URL inputs");
+  if (!slidesSettings) return null;
+
+  if (inputTarget.kind === "stdin") {
+    throw new Error("--slides is only supported for URLs or local video files");
+  }
+
+  if (inputTarget.kind === "file" && !isDirectVideoInput(inputTarget.filePath)) {
+    throw new Error("--slides is only supported for video URLs or local video files");
+  }
+
+  if (
+    inputTarget.kind === "url" &&
+    isDirectMediaUrl(inputTarget.url) &&
+    !isDirectVideoInput(inputTarget.url)
+  ) {
+    throw new Error("--slides is only supported for video URLs or local video files");
   }
 
   return slidesSettings;

@@ -1,3 +1,5 @@
+import { statSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { NEGATIVE_TTL_MS } from "@steipete/summarize-core/content";
 import * as urlUtils from "@steipete/summarize-core/content/url";
 import { buildExtractCacheKey } from "../../../cache.js";
@@ -19,6 +21,27 @@ import type { UrlFlowContext } from "./types.js";
 type LinkPreviewClientOptions = NonNullable<Parameters<typeof createLinkPreviewClient>[0]>;
 type ConvertHtmlToMarkdown = LinkPreviewClientOptions["convertHtmlToMarkdown"];
 type LinkPreviewProgressHandler = ((event: LinkPreviewProgressEvent) => void) | null;
+
+function isLocalFileUrl(url: string): boolean {
+  try {
+    return new URL(url).protocol === "file:";
+  } catch {
+    return false;
+  }
+}
+
+function resolveLocalFileMtime(url: string): number | null {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "file:") return null;
+    parsed.search = "";
+    parsed.hash = "";
+    const stat = statSync(fileURLToPath(parsed));
+    return stat.mtimeMs ?? null;
+  } catch {
+    return null;
+  }
+}
 
 export type UrlExtractionSession = {
   cacheStore: UrlFlowContext["cache"]["store"] | null;
@@ -89,7 +112,7 @@ export function createUrlExtractionSession({
     onProgress,
   });
 
-  const buildFetchOptions = (): FetchLinkContentOptions => ({
+  const buildFetchOptions = (fileMtime: number | null): FetchLinkContentOptions => ({
     timeoutMs: flags.timeoutMs,
     maxCharacters:
       typeof flags.maxExtractCharacters === "number" && flags.maxExtractCharacters > 0
@@ -102,15 +125,17 @@ export function createUrlExtractionSession({
     format: markdown.markdownRequested ? "markdown" : "text",
     markdownMode: markdown.markdownRequested ? markdown.effectiveMarkdownMode : undefined,
     cacheMode: cacheState.mode,
+    fileMtime,
   });
 
   const fetchWithCache = async (
     targetUrl: string,
     { bypassExtractCache = false }: { bypassExtractCache?: boolean } = {},
   ): Promise<ExtractedLinkContent> => {
-    const options = buildFetchOptions();
+    const localFile = isLocalFileUrl(targetUrl);
+    const options = buildFetchOptions(localFile ? resolveLocalFileMtime(targetUrl) : null);
     const cacheKey =
-      cacheStore && cacheState.mode === "default"
+      !localFile && cacheStore && cacheState.mode === "default"
         ? buildExtractCacheKey({
             url: targetUrl,
             options: {

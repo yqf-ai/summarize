@@ -1,3 +1,7 @@
+import { promises as fs } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import { prepareSlidesInput } from "../src/slides/ingest.js";
 
@@ -95,5 +99,42 @@ describe("slides ingest", () => {
     expect(put).toHaveBeenCalled();
     expect(result.inputPath).toBe("/tmp/direct.mp4");
     expect(result.inputCleanup).toBe(cleanup);
+  });
+
+  it("uses local file URLs directly without downloading", async () => {
+    const filePath = path.join(tmpdir(), `summarize-slides-local-${Date.now().toString()}.webm`);
+    await fs.writeFile(filePath, "video");
+
+    try {
+      const downloadYoutubeVideo = vi.fn();
+      const downloadRemoteVideo = vi.fn();
+      const result = await prepareSlidesInput({
+        source: {
+          kind: "direct",
+          url: pathToFileURL(filePath).href,
+          sourceId: "local-video",
+        },
+        mediaCache: null,
+        timeoutMs: 1000,
+        ytDlpPath: null,
+        ytDlpCookiesFromBrowser: null,
+        resolveSlidesYtDlpExtractFormat: () => "best",
+        resolveSlidesStreamFallback: () => false,
+        buildSlidesMediaCacheKey: (url) => `${url}#slides`,
+        formatBytes: (bytes) => `${bytes}B`,
+        reportSlidesProgress: vi.fn(),
+        logSlidesTiming: vi.fn(),
+        downloadYoutubeVideo,
+        downloadRemoteVideo,
+        resolveYoutubeStreamUrl: vi.fn(),
+      });
+
+      expect(result.inputPath).toBe(filePath);
+      expect(result.inputCleanup).toBeNull();
+      expect(downloadYoutubeVideo).not.toHaveBeenCalled();
+      expect(downloadRemoteVideo).not.toHaveBeenCalled();
+    } finally {
+      await fs.rm(filePath, { force: true });
+    }
   });
 });

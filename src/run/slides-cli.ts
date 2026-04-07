@@ -85,7 +85,7 @@ export async function handleSlidesCliRequest({
 
   const url = program.args[0];
   if (!url) {
-    throw new Error("summarize slides requires a URL input.");
+    throw new Error("summarize slides requires a URL or local video file.");
   }
 
   const opts = program.opts() as {
@@ -143,7 +143,9 @@ export async function handleSlidesCliRequest({
 
   const source = resolveSlideSourceFromUrl(url);
   if (!source) {
-    throw new Error("Slides are only supported for YouTube or direct video URLs.");
+    throw new Error(
+      "Slides are only supported for YouTube, direct video URLs, or local video files.",
+    );
   }
 
   const verboseEnabled = Boolean(opts.verbose || opts.debug);
@@ -208,6 +210,7 @@ export async function handleSlidesCliRequest({
       } else {
         oscProgress?.setIndeterminate("Slides");
       }
+      spinner.refresh?.();
       return;
     }
     if (verboseEnabled) {

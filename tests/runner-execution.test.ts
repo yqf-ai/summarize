@@ -34,6 +34,7 @@ function buildOptions(overrides?: Partial<Parameters<typeof executeRunnerInput>[
     url: "https://example.com",
     isYoutubeUrl: false,
     withUrlAssetContext: {},
+    slidesEnabled: false,
     extractMode: false,
     progressEnabled: true,
     renderSpinnerStatus: (label: string) => label,
@@ -166,5 +167,39 @@ describe("runner execution", () => {
     await expect(executeRunnerInput(buildOptions({ url: null }))).rejects.toThrow(
       "Only HTTP and HTTPS URLs can be summarized",
     );
+  });
+
+  it("routes local media files through URL flow when slides are enabled", async () => {
+    await executeRunnerInput(
+      buildOptions({
+        inputTarget: { kind: "file", filePath: "/tmp/video.webm" } as never,
+        url: null,
+        slidesEnabled: true,
+      }),
+    );
+
+    expect(handleFileInput).not.toHaveBeenCalled();
+    expect(runUrlFlow).toHaveBeenCalledWith({
+      ctx: {},
+      url: "file:///tmp/video.webm",
+      isYoutubeUrl: false,
+    });
+  });
+
+  it("routes direct media URLs through URL flow when slides are enabled", async () => {
+    await executeRunnerInput(
+      buildOptions({
+        inputTarget: { kind: "url", url: "https://cdn.example.com/video.mp4" } as never,
+        url: "https://cdn.example.com/video.mp4",
+        slidesEnabled: true,
+      }),
+    );
+
+    expect(withUrlAsset).not.toHaveBeenCalled();
+    expect(runUrlFlow).toHaveBeenCalledWith({
+      ctx: {},
+      url: "https://cdn.example.com/video.mp4",
+      isYoutubeUrl: false,
+    });
   });
 });

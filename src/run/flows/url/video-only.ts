@@ -45,6 +45,9 @@ export async function handleVideoOnlyExtractedContent({
   if (isYoutubeUrl || !extracted.isVideoOnly || !extracted.video) {
     return { handled: false, extracted, extractionUi };
   }
+  if (extracted.video.url.startsWith("file://")) {
+    return { handled: false, extracted, extractionUi };
+  }
 
   if (extracted.video.kind === "youtube") {
     writeVerbose(

@@ -1,7 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import type { ExtractedLinkContent, MediaCache } from "../content/index.js";
-import { extractYouTubeVideoId, isDirectMediaUrl, isYouTubeUrl } from "../content/index.js";
+import type { MediaCache } from "../content/index.js";
 import { resolveExecutableInPath } from "../run/env.js";
 import {
   buildSlidesMediaCacheKey,
@@ -37,7 +36,7 @@ import {
   selectTimestampTargets,
 } from "./scene-detection.js";
 import type { SlideSettings } from "./settings.js";
-import { buildDirectSourceId, buildYoutubeSourceId } from "./source-id.js";
+import { resolveSlideSource, resolveSlideSourceFromUrl } from "./source.js";
 import {
   buildSlidesDirId,
   readSlidesCacheIfValid,
@@ -145,81 +144,6 @@ type ExtractSlidesArgs = {
     onSlidesLog?: ((message: string) => void) | null;
   } | null;
 };
-
-export function resolveSlideSource({
-  url,
-  extracted,
-}: {
-  url: string;
-  extracted: ExtractedLinkContent;
-}): SlideSource | null {
-  const directUrl = extracted.video?.url ?? extracted.url;
-  const youtubeCandidate =
-    extractYouTubeVideoId(extracted.video?.url ?? "") ??
-    extractYouTubeVideoId(extracted.url) ??
-    extractYouTubeVideoId(url);
-  if (youtubeCandidate) {
-    return {
-      url: `https://www.youtube.com/watch?v=${youtubeCandidate}`,
-      kind: "youtube",
-      sourceId: buildYoutubeSourceId(youtubeCandidate),
-    };
-  }
-
-  if (extracted.video?.kind === "direct" || isDirectMediaUrl(directUrl) || isDirectMediaUrl(url)) {
-    const normalized = directUrl || url;
-    return {
-      url: normalized,
-      kind: "direct",
-      sourceId: buildDirectSourceId(normalized),
-    };
-  }
-
-  if (isYouTubeUrl(url)) {
-    const fallbackId = extractYouTubeVideoId(url);
-    if (fallbackId) {
-      return {
-        url: `https://www.youtube.com/watch?v=${fallbackId}`,
-        kind: "youtube",
-        sourceId: buildYoutubeSourceId(fallbackId),
-      };
-    }
-  }
-
-  return null;
-}
-
-export function resolveSlideSourceFromUrl(url: string): SlideSource | null {
-  const youtubeCandidate = extractYouTubeVideoId(url);
-  if (youtubeCandidate) {
-    return {
-      url: `https://www.youtube.com/watch?v=${youtubeCandidate}`,
-      kind: "youtube",
-      sourceId: buildYoutubeSourceId(youtubeCandidate),
-    };
-  }
-
-  if (isDirectMediaUrl(url)) {
-    return {
-      url,
-      kind: "direct",
-      sourceId: buildDirectSourceId(url),
-    };
-  }
-
-  if (isYouTubeUrl(url)) {
-    const fallbackId = extractYouTubeVideoId(url);
-    if (fallbackId) {
-      return {
-        url: `https://www.youtube.com/watch?v=${fallbackId}`,
-        kind: "youtube",
-        sourceId: buildYoutubeSourceId(fallbackId),
-      };
-    }
-  }
-
-  return null;
-}
 
 export async function extractSlidesForSource({
   source,

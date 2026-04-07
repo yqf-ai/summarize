@@ -181,7 +181,7 @@ export async function createRunnerPlan(options: {
     normalizedArgv,
     programOpts,
     config,
-    inputKind: inputTarget.kind,
+    inputTarget,
   });
   const transcriptTimestamps = Boolean(programOpts.timestamps) || Boolean(slidesSettings);
 
@@ -472,6 +472,7 @@ export async function createRunnerPlan(options: {
         url,
         isYoutubeUrl,
         withUrlAssetContext: assetInputContext,
+        slidesEnabled: Boolean(slidesSettings),
         extractMode,
         progressEnabled,
         renderSpinnerStatus,

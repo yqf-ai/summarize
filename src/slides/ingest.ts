@@ -1,9 +1,25 @@
+import { promises as fs } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { MediaCache } from "../content/index.js";
 import { isDirectMediaUrl } from "../content/index.js";
 import type { SlideSource } from "./types.js";
 
 export type SlidesIngestProgress = (label: string, percent: number, detail?: string) => void;
+
+async function resolveLocalSlidesInputPath(url: string): Promise<string | null> {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "file:") return null;
+    parsed.search = "";
+    parsed.hash = "";
+    const filePath = fileURLToPath(parsed);
+    const stat = await fs.stat(filePath);
+    return stat.isFile() ? filePath : null;
+  } catch {
+    return null;
+  }
+}
 
 export async function prepareSlidesInput({
   source,
@@ -59,6 +75,17 @@ export async function prepareSlidesInput({
   warnings: string[];
 }> {
   const warnings: string[] = [];
+  const localInputPath = await resolveLocalSlidesInputPath(source.url);
+  if (localInputPath) {
+    reportSlidesProgress?.("using local video", 35);
+    return {
+      inputPath: localInputPath,
+      inputCleanup: null,
+      cachedMedia: null,
+      warnings,
+    };
+  }
+
   const allowStreamFallback = resolveSlidesStreamFallback();
   const mediaCacheKey = mediaCache ? buildSlidesMediaCacheKey(source.url) : null;
   const cachedMedia = mediaCacheKey ? await mediaCache?.get({ url: mediaCacheKey }) : null;
